@@ -1,0 +1,186 @@
+% Edited: https://github.com/jovyntls/cheatsheets/blob/master/CS3230/cs3230-cheatsheet.tex
+\documentclass[10pt, landscape]{article}
+\usepackage[scaled=0.92]{helvet}
+\usepackage{calc}
+\usepackage{multicol}
+\usepackage[a4paper,margin=3mm,landscape]{geometry}
+\usepackage{amsmath,amsthm,amsfonts,amssymb}
+\usepackage{color,graphicx,overpic}
+\usepackage{hyperref}
+\usepackage{newtxtext} 
+\usepackage{enumitem}
+\usepackage[table]{xcolor}
+\usepackage{mathtools}
+\setlist{nosep}
+
+\input{styles}
+\input{code}
+\pagestyle{empty}
+
+% For code
+
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+  {-1ex plus -.5ex minus -.2ex}%
+  {0.5ex plus .2ex}%x
+{\normalfont\large\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+  {-1explus -.5ex minus -.2ex}%
+  {0.5ex plus .2ex}%
+{\normalfont\normalsize\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+  {-1ex plus -.5ex minus -.2ex}%
+  {1ex plus .2ex}%
+{\normalfont\small\bfseries}}%
+\makeatother
+
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand\rmdefault{\sfdefault}
+%  makes nested numbering (e.g. 1.1.1, 1.1.2, etc)
+\renewcommand{\labelenumii}{\theenumii}
+\renewcommand{\theenumii}{\theenumi.\arabic{enumii}.}
+\renewcommand\labelitemii{•}
+\renewcommand\labelitemiii{•}
+
+\definecolor{mathblue}{cmyk}{1,.72,0,.38}
+\everymath\expandafter{\the\everymath \color{mathblue}}
+
+% Don't print section numbers
+% \setcounter{secnumdepth}{0}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+%% adjust spacing for all itemize/enumerate
+\setlength{\leftmargini}{0.5cm}
+\setlength{\leftmarginii}{0.5cm}
+\setlist[itemize,1]{leftmargin=2mm,labelindent=1mm,labelsep=1mm}
+\setlist[itemize,2]{leftmargin=3mm,labelindent=1mm,labelsep=1mm}
+\setlist[itemize,3]{leftmargin=3mm,labelindent=1mm,labelsep=1mm}
+
+
+\begin{document}
+\raggedright
+\footnotesize
+\begin{multicols*}{4}
+\setlength{\columnseprule}{0.25pt}
+ \begin{center}
+    \fbox{%
+      \parbox{0.8\linewidth}{\centering \textcolor{black}{
+          {\Large\textbf{CS3211}}
+        \\ \normalsize{Parallel And Concurrent Programming}}
+        \\ {\footnotesize \textcolor{gray}{github/woowenjun99}}
+      }%
+    }
+  \end{center}
+\section{Concurrency}
+\begin{itemize}
+    \item Two or more tasks can start, run or complete in overlapping time periods.
+    \item \definition{Process} A program in the operating systems.
+    \item \definition{Threads} Independent control flows of the program that share the same memory address in the process.
+    \item \definition{Starvation} A situation where a process is prevented from making progress because some other resources has the resource it requires.
+\end{itemize}
+
+\subsection{Race Condition}
+\begin{itemize}
+    \item \definition{Race Condition} Two concurrent threads or processes access a shared resource without any synchronisation, and at least one thread modifies the shared resource.
+    \item \definition{Data Race} Two accesses to a single memory location, no enforced ordering between the access, one or both accesses is a write and causes undefined behavior.
+\end{itemize}
+
+\subsection{Deadlock Conditions}
+\begin{itemize}
+    \item \definition{Coffman Condition} 4 conditions for a deadlock
+    \begin{enumerate}
+        \item Mutual Exclusion: At least one of the resource must be held in a non-shareable mode.
+        \item Resource Holding: One process is holding one resource and requesting for another resource.
+        \item No preemption: Resources cannot be preempted and critical sections cannot be aborted internally.
+        \item Circular Wait: There must exist a set of processes $\{p_1, p_2, ..., p_n\}$ such that $p_1$ is waiting for $p_2$, $p_2$ is waiting for $p_3$ etc
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Parallelism}
+\begin{itemize}
+    \item \definition{Task Parallelism} Same types of tasks are assigned to the same thread. This leads to increase in separation of concerns as each thread is responsible for a stage of a pipeline. Example: Go pipeline concurrency pattern
+
+    \item \definition{Data Parallelism} Each thread manages its own set of data. Example: Hand-over-hand lock
+\end{itemize}
+
+\section{Threads}
+\begin{itemize}
+    \item If we need to wait for a thread to finish, we use \code{join}. Otherwise, we use \code{detach}.
+    \item If we intend to \code{join} the thread, we need to make sure to do so even when there is an exception. 
+    If we intend to \code{detach} the thread, we need to be very careful when passing in arguments as their lifetime might have ended but the thread is still running.
+\end{itemize}
+
+\subsection{RAII}
+\begin{itemize}
+    \item \definition{Owner} An object containing a pointer to an object allocaated by new, for which delete is required. Every object in the free store must have exactly one owner.
+    \item \definition{Resource Acquisition Is Initialisation} Binds the resource that must be acquired before use to the lifetime of an object.
+    \item Threads instances are movable but not copyable.
+\end{itemize}
+
+\section{Concurrency In Go}
+\begin{itemize}
+    \item The Go programming language is created based on the principle of CSP.
+    \item \definition{Communicating Sequntial Processes (CSP)} The output for one process is the input of another process.
+    \item \definition{Goroutines} Functions that runs independently and follow the \code{fork-join} model similar to threads, but are not threads.
+\end{itemize}
+
+\section{Patterns In Go}
+\subsection{Confinement}
+\begin{itemize}
+    \item Synchronise via communicating (e.g. channels)
+    \item Data is protected by confinement
+\end{itemize}
+\subsubsection{Lexical Confinement (1)}
+
+\begin{itemize}
+    \item We can expose the reading or writing handle of the channel.
+\end{itemize}
+
+\begin{lstlisting}[language=Go, style=customcpp]
+producer := func() <-chan int {
+    results := make(chan int, 5)
+    go func() {
+        defer close(results)
+        for i := 0; i < 5; ++i {
+            results <- i
+        }
+    }()
+    return results
+}
+
+consumer := func(results chan int) {
+    for result := range(results) {
+        fmt.Println(result)
+    }
+    fmt.Println("Done receiving")
+}
+
+consumer(producer())
+\end{lstlisting}
+
+\subsubsection{Lexical Confinement (2)}
+\begin{itemize}
+    \item Alternatively, we can expose only a slice of the array.
+\end{itemize}
+\begin{lstlisting}[language=Go, style=customcpp]
+data := byte("golang")
+go printData(data[:3])
+go printData(data[3:])
+\end{lstlisting}
+
+\subsection{For-Select Pattern}
+\begin{lstlisting}[language=Go, style=customcpp]
+for {
+    select{
+    }
+}
+\end{lstlisting}
+\begin{itemize}
+    \item Sending iteration variable out of a channel
+    \item Looping and waiting to be stopped. Since goroutines use resources, we need to ensure that it gets terminated. 
+    \item The convention is that if a goroutine is responsible for creating a goroutine, it is responsible for ensuring it can stop the goroutine.
+\end{itemize}
+
+\end{multicols*}
+\end{document}
